@@ -35,11 +35,13 @@ model Todo {
   position    Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  userId      String
   tags        Tag[]    @relation("TodoToTag")
   order       Int      @default(0)
   status      String   @default("TODO")
 
   @@schema("public")
+  @@index([userId])
   @@index([category])
   @@index([dueDate])
   @@index([position])
@@ -48,12 +50,14 @@ model Todo {
 
 model Tag {
   id        String   @id @default(uuid())
-  name      String   @unique
+  name      String
   color     String   @default("#6B7280")
   todos     Todo[]   @relation("TodoToTag")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId    String
 
   @@schema("public")
   @@index([name])
+  @@index([userId])
 }

@@ -22,10 +22,18 @@ interface TodoTag {
 export const todoRouter = createTRPCRouter({
 	// すべてのTodoを取得
 	getAll: publicProcedure.query(async ({ ctx }) => {
+		if (!ctx.user) {
+			throw new TRPCError({
+				code: "UNAUTHORIZED",
+				message: "ログインが必要です",
+			});
+		}
+
 		try {
 			const { data: todos, error } = await ctx.supabase
 				.from("todo")
 				.select("*, tags:todo_tag(tag:tag(*))")
+				.eq("userId", ctx.user.id)
 				.order("createdAt", { ascending: false });
 
 			if (error) {
@@ -57,6 +65,13 @@ export const todoRouter = createTRPCRouter({
 	create: publicProcedure
 		.input(createTodoSchema)
 		.mutation(async ({ ctx, input }) => {
+			if (!ctx.user) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "ログインが必要です",
+				});
+			}
+
 			try {
 				const { data: todo, error } = await ctx.supabase
 					.from("todo")
@@ -71,6 +86,7 @@ export const todoRouter = createTRPCRouter({
 						completed: false,
 						status: "TODO",
 						order: 0,
+						userId: ctx.user.id,
 						createdAt: new Date().toISOString(),
 						updatedAt: new Date().toISOString(),
 					})
@@ -113,6 +129,13 @@ export const todoRouter = createTRPCRouter({
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
+			if (!ctx.user) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "ログインが必要です",
+				});
+			}
+
 			try {
 				const { error } = await ctx.supabase
 					.from("todo")
@@ -137,7 +160,8 @@ export const todoRouter = createTRPCRouter({
 						}),
 						updatedAt: new Date().toISOString(),
 					})
-					.eq("id", input.id);
+					.eq("id", input.id)
+					.eq("userId", ctx.user.id);
 
 				if (error) {
 					console.error("Todo更新エラー:", error);
@@ -182,6 +206,7 @@ export const todoRouter = createTRPCRouter({
 						.from("todo")
 						.select("*, tags:todo_tag(tag:tag(*))")
 						.eq("id", input.id)
+						.eq("userId", ctx.user.id)
 						.single();
 
 				if (fetchError) {
@@ -211,11 +236,19 @@ export const todoRouter = createTRPCRouter({
 	delete: publicProcedure
 		.input(z.object({ id: z.string() }))
 		.mutation(async ({ ctx, input }) => {
+			if (!ctx.user) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "ログインが必要です",
+				});
+			}
+
 			try {
 				const { error } = await ctx.supabase
 					.from("todo")
 					.delete()
-					.eq("id", input.id);
+					.eq("id", input.id)
+					.eq("userId", ctx.user.id);
 
 				if (error) {
 					console.error("Todo削除エラー:", error);

@@ -27,6 +27,7 @@ export const tagRouter = createTRPCRouter({
 			const { data: tags, error } = await ctx.supabase
 				.from("tag")
 				.select("*")
+				.eq("userId", ctx.user.id)
 				.order("name", { ascending: true });
 
 			if (error) {
@@ -65,6 +66,7 @@ export const tagRouter = createTRPCRouter({
 					.insert({
 						name: input.name,
 						color: input.color,
+						userId: ctx.user.id,
 						createdAt: new Date().toISOString(),
 						updatedAt: new Date().toISOString(),
 					})
@@ -108,7 +110,8 @@ export const tagRouter = createTRPCRouter({
 						color: input.color,
 						updatedAt: new Date().toISOString(),
 					})
-					.eq("id", input.id);
+					.eq("id", input.id)
+					.eq("userId", ctx.user.id);
 
 				if (error) {
 					console.error("タグ更新エラー:", error);
@@ -158,7 +161,8 @@ export const tagRouter = createTRPCRouter({
 				const { error } = await ctx.supabase
 					.from("tag")
 					.delete()
-					.eq("id", input.id);
+					.eq("id", input.id)
+					.eq("userId", ctx.user.id);
 
 				if (error) {
 					console.error("タグ削除エラー:", error);
