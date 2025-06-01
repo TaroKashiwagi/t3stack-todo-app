@@ -35,7 +35,7 @@ model Todo {
   position    Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  userId      String
+  userId      String   @db.Uuid
   tags        Tag[]    @relation("TodoToTag")
   order       Int      @default(0)
   status      String   @default("TODO")
@@ -55,7 +55,7 @@ model Tag {
   todos     Todo[]   @relation("TodoToTag")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String
+  userId    String   @db.Uuid
 
   @@schema("public")
   @@index([name])
