@@ -4,7 +4,12 @@ import { useState, useMemo } from "react";
 import { useAuth } from "../_lib/auth";
 import Link from "next/link";
 import { z } from "zod";
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
+import {
+	CheckCircleIcon,
+	XCircleIcon,
+	EyeIcon,
+	EyeSlashIcon,
+} from "@heroicons/react/24/solid";
 import toast, { Toaster } from "react-hot-toast";
 
 const passwordSchema = z.object({
@@ -58,6 +63,7 @@ export default function SignUpPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [passwordError, setPasswordError] = useState<string | null>(null);
+	const [showPassword, setShowPassword] = useState(false);
 	const { signUp } = useAuth();
 
 	const requirementStatus = useMemo(() => {
@@ -171,17 +177,17 @@ export default function SignUpPage() {
 								onChange={(e) => setEmail(e.target.value)}
 							/>
 						</div>
-						<div>
+						<div className="relative">
 							<label htmlFor="password" className="sr-only">
 								パスワード
 							</label>
 							<input
 								id="password"
 								name="password"
-								type="password"
+								type={showPassword ? "text" : "password"}
 								autoComplete="new-password"
 								required
-								className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+								className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm pr-10"
 								placeholder="パスワード"
 								value={password}
 								onChange={(e) => {
@@ -189,6 +195,17 @@ export default function SignUpPage() {
 									validatePassword(e.target.value);
 								}}
 							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500 focus:outline-none"
+							>
+								{showPassword ? (
+									<EyeSlashIcon className="h-5 w-5" />
+								) : (
+									<EyeIcon className="h-5 w-5" />
+								)}
+							</button>
 						</div>
 					</div>
 
