@@ -4,26 +4,27 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../_lib/auth";
 import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
 	const { signIn } = useAuth();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setError(null);
 		setIsLoading(true);
 
 		try {
 			await signIn(email, password);
-			router.push("/"); // ログイン成功後、ホームページにリダイレクト
+			router.push("/");
 		} catch (error) {
-			console.error("ログインに失敗しました:", error);
-			setError(
+			console.error("Login error:", error);
+			toast.error(
 				"ログインに失敗しました。メールアドレスとパスワードを確認してください。"
 			);
 		} finally {
@@ -33,10 +34,11 @@ export default function LoginPage() {
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+			<Toaster />
 			<div className="max-w-md w-full space-y-8">
 				<div>
 					<h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-						アカウントにログイン
+						ログイン
 					</h2>
 				</div>
 				<form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -57,29 +59,45 @@ export default function LoginPage() {
 								onChange={(e) => setEmail(e.target.value)}
 							/>
 						</div>
-						<div>
+						<div className="relative">
 							<label htmlFor="password" className="sr-only">
 								パスワード
 							</label>
 							<input
 								id="password"
 								name="password"
-								type="password"
+								type={showPassword ? "text" : "password"}
 								autoComplete="current-password"
 								required
-								className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+								className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm pr-10"
 								placeholder="パスワード"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500 focus:outline-none"
+							>
+								{showPassword ? (
+									<EyeSlashIcon className="h-5 w-5" />
+								) : (
+									<EyeIcon className="h-5 w-5" />
+								)}
+							</button>
 						</div>
 					</div>
 
-					{error && (
-						<div className="text-red-500 text-sm text-center">
-							{error}
+					<div className="flex items-center justify-between">
+						<div className="text-sm">
+							<Link
+								href="/reset-password"
+								className="font-medium text-indigo-600 hover:text-indigo-500"
+							>
+								パスワードをお忘れですか？
+							</Link>
 						</div>
-					)}
+					</div>
 
 					<div>
 						<button

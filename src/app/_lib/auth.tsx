@@ -3,13 +3,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
+import { Database } from "@/types/supabase";
+
+type User = Database["public"]["Tables"]["users"]["Row"];
 
 interface AuthContextType {
 	user: User | null;
 	signIn: (email: string, password: string) => Promise<void>;
 	signUp: (email: string, password: string, name: string) => Promise<void>;
 	signOut: () => Promise<void>;
+	resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,13 +20,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
 	const router = useRouter();
-	const supabase = createClientComponentClient();
+	const supabase = createClientComponentClient<Database>();
 
 	useEffect(() => {
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange((_event, session) => {
-			setUser(session?.user ?? null);
+		} = supabase.auth.onAuthStateChange((event, session) => {
+			if (session?.user) {
+				setUser(session.user as User);
+			} else {
+				setUser(null);
+			}
 		});
 
 		return () => {
@@ -36,12 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			email,
 			password,
 		});
-
-		if (error) {
-			throw error;
-		}
-
-		router.refresh();
+		if (error) throw error;
 	};
 
 	const signUp = async (email: string, password: string, name: string) => {
@@ -54,22 +56,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				},
 			},
 		});
-
-		if (error) {
-			throw error;
-		}
+		if (error) throw error;
 	};
 
 	const signOut = async () => {
 		const { error } = await supabase.auth.signOut();
-		if (error) {
-			throw error;
-		}
-		router.refresh();
+		if (error) throw error;
+		router.push("/login");
+	};
+
+	const resetPassword = async (email: string) => {
+		const { error } = await supabase.auth.resetPasswordForEmail(email, {
+			redirectTo: `${window.location.origin}/update-password`,
+		});
+		if (error) throw error;
 	};
 
 	return (
-		<AuthContext.Provider value={{ user, signIn, signUp, signOut }}>
+		<AuthContext.Provider
+			value={{ user, signIn, signUp, signOut, resetPassword }}
+		>
 			{children}
 		</AuthContext.Provider>
 	);
