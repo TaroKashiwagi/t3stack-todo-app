@@ -35,13 +35,11 @@ model Todo {
   position    Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  userId      String
   tags        Tag[]    @relation("TodoToTag")
   order       Int      @default(0)
   status      String   @default("TODO")
 
   @@schema("public")
-  @@index([userId])
   @@index([category])
   @@index([dueDate])
   @@index([position])

@@ -18,7 +18,6 @@ export interface Todo {
 	position: number;
 	createdAt: Date;
 	updatedAt: Date;
-	userId: string;
 	tags: Tag[];
 	order: number;
 	status: TodoStatus;
@@ -27,7 +26,6 @@ export interface Todo {
 export interface CreateTodoInput {
 	title: string;
 	description: string;
-	userId: string;
 	status?: TodoStatus;
 }
 

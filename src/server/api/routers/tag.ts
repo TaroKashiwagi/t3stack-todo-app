@@ -27,8 +27,7 @@ export const tagRouter = createTRPCRouter({
 			const { data: tags, error } = await ctx.supabase
 				.from("tag")
 				.select("*")
-				.eq("userId", ctx.user.id)
-				.order("name");
+				.order("name", { ascending: true });
 
 			if (error) {
 				console.error("タグ取得エラー:", error);
@@ -66,7 +65,6 @@ export const tagRouter = createTRPCRouter({
 					.insert({
 						name: input.name,
 						color: input.color,
-						userId: ctx.user.id,
 						createdAt: new Date().toISOString(),
 						updatedAt: new Date().toISOString(),
 					})
@@ -110,10 +108,7 @@ export const tagRouter = createTRPCRouter({
 						color: input.color,
 						updatedAt: new Date().toISOString(),
 					})
-					.eq("id", input.id)
-					.eq("userId", ctx.user.id)
-					.select()
-					.single();
+					.eq("id", input.id);
 
 				if (error) {
 					console.error("タグ更新エラー:", error);
@@ -160,17 +155,16 @@ export const tagRouter = createTRPCRouter({
 				}
 
 				// 次に、タグ自体を削除
-				const { error: tagError } = await ctx.supabase
+				const { error } = await ctx.supabase
 					.from("tag")
 					.delete()
-					.eq("id", input.id)
-					.eq("userId", ctx.user.id);
+					.eq("id", input.id);
 
-				if (tagError) {
-					console.error("タグ削除エラー:", tagError);
+				if (error) {
+					console.error("タグ削除エラー:", error);
 					throw new TRPCError({
 						code: "INTERNAL_SERVER_ERROR",
-						message: `タグの削除に失敗しました: ${tagError.message}`,
+						message: `タグの削除に失敗しました: ${error.message}`,
 					});
 				}
 

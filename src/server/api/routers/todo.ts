@@ -23,17 +23,9 @@ export const todoRouter = createTRPCRouter({
 	// すべてのTodoを取得
 	getAll: publicProcedure.query(async ({ ctx }) => {
 		try {
-			if (!ctx.user) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "ログインが必要です",
-				});
-			}
-
 			const { data: todos, error } = await ctx.supabase
 				.from("todo")
 				.select("*, tags:todo_tag(tag:tag(*))")
-				.eq("userId", ctx.user.id)
 				.order("createdAt", { ascending: false });
 
 			if (error) {
@@ -66,14 +58,6 @@ export const todoRouter = createTRPCRouter({
 		.input(createTodoSchema)
 		.mutation(async ({ ctx, input }) => {
 			try {
-				if (!ctx.user) {
-					throw new TRPCError({
-						code: "UNAUTHORIZED",
-						message: "ログインが必要です",
-					});
-				}
-
-				console.log("Creating todo with user:", ctx.user.id);
 				const { data: todo, error } = await ctx.supabase
 					.from("todo")
 					.insert({
@@ -87,7 +71,6 @@ export const todoRouter = createTRPCRouter({
 						completed: false,
 						status: "TODO",
 						order: 0,
-						userId: ctx.user.id,
 						createdAt: new Date().toISOString(),
 						updatedAt: new Date().toISOString(),
 					})
@@ -131,14 +114,6 @@ export const todoRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			try {
-				if (!ctx.user) {
-					throw new TRPCError({
-						code: "UNAUTHORIZED",
-						message: "ログインが必要です",
-					});
-				}
-
-				// タスクの基本情報を更新
 				const { error } = await ctx.supabase
 					.from("todo")
 					.update({
@@ -162,8 +137,7 @@ export const todoRouter = createTRPCRouter({
 						}),
 						updatedAt: new Date().toISOString(),
 					})
-					.eq("id", input.id)
-					.eq("userId", ctx.user.id);
+					.eq("id", input.id);
 
 				if (error) {
 					console.error("Todo更新エラー:", error);
@@ -238,18 +212,10 @@ export const todoRouter = createTRPCRouter({
 		.input(z.object({ id: z.string() }))
 		.mutation(async ({ ctx, input }) => {
 			try {
-				if (!ctx.user) {
-					throw new TRPCError({
-						code: "UNAUTHORIZED",
-						message: "ログインが必要です",
-					});
-				}
-
 				const { error } = await ctx.supabase
 					.from("todo")
 					.delete()
-					.eq("id", input.id)
-					.eq("userId", ctx.user.id);
+					.eq("id", input.id);
 
 				if (error) {
 					console.error("Todo削除エラー:", error);
