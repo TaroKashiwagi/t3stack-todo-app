@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas  = ["public"]
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@schema("public")
+}
+
+model Todo {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  dueDate     DateTime?
+  priority    Priority @default(MEDIUM)
+  category    String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  tags        Tag[]    @relation("TodoToTag")
+  order       Int      @default(0)
+  status      String   @default("TODO")
+
+  @@schema("public")
+  @@index([userId])
+  @@index([category])
+  @@index([dueDate])
+  @@index([position])
+  @@index([completed])
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  color     String   @default("#6B7280")
+  todos     Todo[]   @relation("TodoToTag")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("public")
+  @@index([name])
+}
